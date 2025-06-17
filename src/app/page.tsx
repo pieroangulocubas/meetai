@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { devIndicatorServerState } from "next/dist/server/dev/dev-indicator-server-state";
 
 export default function Home() {
   const { signUp,signIn } = authClient
