@@ -6,10 +6,10 @@ import Link from 'next/link'
 
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { FaGoogle, FaGithub } from 'react-icons/fa'
 import { authClient } from '@/lib/auth-client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OctagonAlertIcon } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -25,7 +25,6 @@ const formschema = z.object({
   path: ['confirmPassword']})
 
 export function SignUpView() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -39,21 +38,38 @@ export function SignUpView() {
     }
   })
 
-  const onSubmit = async (data: z.infer<typeof formschema>) => {
+  const onSubmit = (data: z.infer<typeof formschema>) => {
     setError(null)
     setLoading(true)
     authClient.signUp.email({
       name: data.name,
       email: data.email,
       password: data.password,
+      callbackURL: "/"
     },{
       onSuccess: () => {
-        router.push('/')
         setLoading(false)
       },
       onError: (error) => {
         setError(error.error.message || 'Error al iniciar sesión')
         setLoading(false)
+      },
+    })
+  }
+
+   const onSocial = (provider: "github" | "google") => {
+    setError(null)
+    setLoading(true)
+    authClient.signIn.social({
+      provider: provider,
+      callbackURL:"/"
+    },{
+      onSuccess: () => {
+        setLoading(false)
+      },
+      onError: (error) => {
+        setLoading(false)
+        setError(error.error.message || 'Error al iniciar sesión')
       },
 
     })
@@ -141,11 +157,11 @@ export function SignUpView() {
             <div>
               <hr className="my-4" />
             </div>
-            <Button disabled={loading} variant="outline" className="w-full">
-              Continuar con Google
-            </Button>
-            <Button disabled={loading} variant="default" className="w-full">
-              Continuar con GitHub
+            <Button disabled={loading} variant="outline" className="w-full" onClick={() => onSocial('google')}>
+              <FaGoogle />
+            </Button> 
+            <Button disabled={loading} variant="default" className="w-full" onClick={() => onSocial('github')}>
+              <FaGithub />
             </Button>
           </form>
         </Form>
