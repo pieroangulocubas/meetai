@@ -2,18 +2,16 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Link from 'next/link'
-
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import Link from 'next/link'
+import { FaGoogle, FaGithub } from 'react-icons/fa'
 import { authClient } from '@/lib/auth-client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OctagonAlertIcon } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Card } from '@/components/ui/card'
 
 const formschema = z.object({
   email: z.string().email({message: 'Email inválido'}),
@@ -22,7 +20,6 @@ const formschema = z.object({
 
 
 export function SignInView() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -34,20 +31,38 @@ export function SignInView() {
     }
   })
 
-  const onSubmit = async (data: z.infer<typeof formschema>) => {
+  const onSubmit = (data: z.infer<typeof formschema>) => {
     setError(null)
     setLoading(true)
     authClient.signIn.email({
       email: data.email,
-      password: data.password
+      password: data.password,
+      callbackURL: "/"
     },{
       onSuccess: () => {
-        router.push('/')
         setLoading(false)
       },
       onError: (error) => {
-        setError(error.error.message || 'Error al iniciar sesión')
         setLoading(false)
+        setError(error.error.message || 'Error al iniciar sesión')
+      },
+
+    })
+  }
+
+   const onSocial = (provider: "github" | "google") => {
+    setError(null)
+    setLoading(true)
+    authClient.signIn.social({
+      provider: provider,
+      callbackURL:"/"
+    },{
+      onSuccess: () => {
+        setLoading(false)
+      },
+      onError: (error) => {
+        setLoading(false)
+        setError(error.error.message || 'Error al iniciar sesión')
       },
 
     })
@@ -107,18 +122,26 @@ export function SignInView() {
             <Button type="submit" disabled={loading} className="w-full bg-green-700 hover:bg-green-600">
               Iniciar Sesión
             </Button>
-            <div>
-              <hr className="my-4" />
-            </div>
-            <Button disabled={loading} variant="outline" className="w-full">
-              Continuar con Google
-            </Button>
-            <Button disabled={loading} variant="default" className="w-full">
-              Continuar con GitHub
-            </Button>
+            
           </form>
         </Form>
       </div>
+      <div>
+        <hr className="my-4" />
+      </div>
+      <Button disabled={loading} 
+        variant="outline" 
+        className="w-full"
+        onClick={() => onSocial('google')}>
+        <FaGoogle />
+      </Button>
+      <Button
+        onClick={() => onSocial('github')}
+        disabled={loading} 
+        variant="default" 
+        className="w-full">
+        <FaGithub />
+      </Button>
       <div className="mt-4 text-center text-sm">
         ¿No tienes una cuenta?{" "}
         <Link href="/sign-up" className="underline">
